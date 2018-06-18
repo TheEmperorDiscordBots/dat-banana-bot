@@ -45,7 +45,7 @@ class Economy:
 
 
     @commands.command(aliases=['register', 'openbank'])
-    async def openaccount(self, ctx):
+    async def openacc(self, ctx):
         '''Opens a bank account for the economy!'''
         registered = await self.is_registered(ctx.author)
         if registered:
@@ -63,7 +63,7 @@ class Economy:
         em = discord.Embed(color=0x00ff00, title='Current Balance')
         x = await self.db.economy.find_one({"user": user.id})
         if not x:
-            em.description = f"{person} don't have an account on dat banana bot yet! Open one using `*openaccount`."
+            em.description = f"{person} don't have an account on dat banana bot yet! Open one using `*openacc`."
         else:
             responses = [
                 f"{person} **{x['points']}** :banana:. Kinda sad.",
@@ -125,11 +125,11 @@ class Economy:
 
     @commands.command()
     async def lottery(self, ctx, numbers: str):
-        '''Enter the lottery to win/lose! 3 numbers, seperate with commas. Entry is $50, winner gets $10 million!'''
+        '''Enter the lottery to win/lose! 3 numbers, seperate with commas. Entry is $1, winner gets $10 million!'''
         x = await self.db.economy.find_one({"user": ctx.author.id})
         if x is None:
             return await ctx.send("Oof. You don't have an account yet! Time to create one with `*openaccount`.")
-        if int(x['points']) < 100:
+        if int(x['points']) < 1:
             return await ctx.send("Entering the lottery requires 100 :banana:. You don't have enough! Keep on earning 'em")
         if numbers is None:
             return await ctx.send("Please enter 3 numbers seperated by commas to guess the lottery! \nExample: *lottery 1,2,3")
@@ -159,7 +159,7 @@ class Economy:
             await ctx.send(embed=em)
             self.lottery_numbers = [str(random.randint(0, 9)), str(random.randint(0, 9)), str(random.randint(0, 9))]
         else:
-            await self.add_points(ctx.author, -100)
+            await self.add_points(ctx.author, -1)
             em = discord.Embed(color=0xf44e42)
             responses = [
                 f"OOF! Guess who didn't win the giant $$ this time!",
@@ -249,11 +249,9 @@ class Economy:
 
 
     @commands.command(aliases=['give'])
-    #@commands.has_permissions(manage_guild=True)
+    @commands.has_permissions(manage_guild=True)
     async def reward(self, ctx, user: discord.Member, points):
         '''Reward a good person'''
-        if not self.dev_check(ctx.author.id):
-            return await ctx.send("HALT! This command is for the devs only. Sorry. :x:")
         if not self.is_registered(user):
             return await ctx.send(f"ACK! **{str(user)}** doesn't have an account yet, so they can't get the gucci money!")
         else:
@@ -269,11 +267,9 @@ class Economy:
                 print(e)
 
     @commands.command(aliases=['remove'])
-    #@commands.has_permissions(manage_guild=True)
+    @commands.has_permissions(manage_guild=True)
     async def deduct(self, ctx, user: discord.Member, points):
         '''Fines a bad boi.'''
-        if not self.dev_check(ctx.author.id):
-            return await ctx.send("HALT! This command is for the devs only. Sorry. :x:")
         if not self.is_registered(user):
             return await ctx.send(f"ACK! **{str(user)}** doesn't have an account yet, so you can't take away money from them!")
         else:
